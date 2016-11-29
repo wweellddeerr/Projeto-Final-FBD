@@ -3,6 +3,9 @@ package br.unb.ppca.fbd.etl.action;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
+import br.unb.ppca.fbd.etl.exception.ArquivoInvalidoException;
+import br.unb.ppca.fbd.etl.exception.DiretorioInvalidoException;
+
 public class Main {
 
 	public static void main(String[] args) {

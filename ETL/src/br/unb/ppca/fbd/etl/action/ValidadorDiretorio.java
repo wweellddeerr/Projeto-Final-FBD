@@ -4,6 +4,9 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import br.unb.ppca.fbd.etl.exception.DiretorioInvalidoException;
+import br.unb.ppca.fbd.etl.vo.UF;
+
 public class ValidadorDiretorio {
 	
 	private ValidadorDiretorio() {}

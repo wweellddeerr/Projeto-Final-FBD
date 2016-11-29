@@ -6,7 +6,18 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import javax.persistence.EntityManager;
+import javax.persistence.Persistence;
+
+import br.unb.ppca.fbd.etl.exception.ArquivoInvalidoException;
+import br.unb.ppca.fbd.etl.exception.DiretorioInvalidoException;
+import br.unb.ppca.fbd.etl.util.ArquivoUtil;
+import br.unb.ppca.fbd.etl.vo.ArquivoProcessado;
+import br.unb.ppca.fbd.etl.vo.UF;
+
 public class PovoadorBancoDados {
+	
+	private EntityManager entityManager;
 	
 	private PovoadorBancoDados(){}
 	
@@ -20,6 +31,10 @@ public class PovoadorBancoDados {
 	}
 
 	public void povoar(File diretorio) throws DiretorioInvalidoException, ArquivoInvalidoException {
+		if(entityManager == null) {
+			entityManager = Persistence.createEntityManagerFactory("etlPU").createEntityManager();
+		}
+		entityManager.createNativeQuery("select * from MUNICIPIO").getResultList();
 		Map<UF, File> arquivosNaoProcessados = ValidadorDiretorio.instance().validar(diretorio);
 		Map<UF, ArquivoProcessado> arquivosProcessados = processarArquivos(arquivosNaoProcessados);
 		
