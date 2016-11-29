@@ -14,6 +14,7 @@ public class Main {
 		if(retorno == JFileChooser.APPROVE_OPTION) {
 			try {
 				PovoadorBancoDados.instance().povoar(uploader.getSelectedFile());
+				JOptionPane.showMessageDialog(null, "O diretório é válido.");
 			}
 			catch(DiretorioInvalidoException e) {
 				JOptionPane.showMessageDialog(null, e.getMensagem(), "Diretório inválido", JOptionPane.ERROR_MESSAGE);
