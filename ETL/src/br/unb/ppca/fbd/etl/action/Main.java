@@ -12,13 +12,20 @@ public class Main {
 		int retorno = uploader.showOpenDialog(null);
 		
 		if(retorno == JFileChooser.APPROVE_OPTION) {
+			String mensagemExcecao = null;
 			try {
 				PovoadorBancoDados.instance().povoar(uploader.getSelectedFile());
 				JOptionPane.showMessageDialog(null, "O diretório é válido.");
 			}
 			catch(DiretorioInvalidoException e) {
-				JOptionPane.showMessageDialog(null, e.getMensagem(), "Diretório inválido", JOptionPane.ERROR_MESSAGE);
-			} 
+				mensagemExcecao = e.getMensagem();
+			}
+			catch (ArquivoInvalidoException e) {
+				mensagemExcecao = e.getMensagem();
+			}
+			if(mensagemExcecao != null) {
+				JOptionPane.showMessageDialog(null, mensagemExcecao, "Erro no processamento", JOptionPane.ERROR_MESSAGE);
+			}
 		}
 		
 	}
