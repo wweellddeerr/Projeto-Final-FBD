@@ -9,6 +9,7 @@ import java.util.Map;
 import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
 
+import br.unb.ppca.fbd.etl.entity.Municipio;
 import br.unb.ppca.fbd.etl.exception.ArquivoInvalidoException;
 import br.unb.ppca.fbd.etl.exception.DiretorioInvalidoException;
 import br.unb.ppca.fbd.etl.exception.LinhaInvalidaException;
@@ -37,22 +38,69 @@ public class PovoadorBancoDados {
 	}
 
 	public void povoar(File diretorio) throws DiretorioInvalidoException, ArquivoInvalidoException {
-		if (entityManager == null) {
-			entityManager = Persistence.createEntityManagerFactory("etlPU").createEntityManager();
-		}
-		entityManager.createNativeQuery("select * from MUNICIPIO").getResultList();
+		
 		Map<UF, File> arquivosNaoProcessados = ValidadorDiretorio.instance().validar(diretorio);
 		Map<UF, ArquivoProcessado> arquivosProcessados = processarArquivos(arquivosNaoProcessados);
 
+		getEntityManager().getTransaction().begin();
+		try {
+			incluirTodasUFs();
+			
+			for (UF uf : UF.values()) {
+				povoarDados(uf, arquivosProcessados.get(uf));
+			}
+	
+			getEntityManager().getTransaction().commit();
+		}
+		catch(Exception e) {
+			getEntityManager().getTransaction().rollback();
+			throw e;
+		}
+		finally {
+			getEntityManager().close();
+		}
+	}
+
+	
+
+	private void incluirTodasUFs() {
 		for (UF uf : UF.values()) {
-			povoarDados(uf, arquivosProcessados.get(uf));
+			getEntityManager()
+				.createNativeQuery("insert into UF(SIGLA, NOME) values (:sigla, :nome)")
+				.setParameter("sigla", uf.name())
+				.setParameter("nome", uf.getNome())
+				.executeUpdate();
+		}
+	}
+
+	private void povoarDados(UF uf, ArquivoProcessado arquivoProcessado) {
+		for (LinhaProcessada linhaProcessada : arquivoProcessado.getLinhasProcessadas()) {
+			Municipio municipioEleicao = criarMunicipioSeNaoExistir(linhaProcessada.getCodigoMunicipio(), linhaProcessada.getNomeMunicipio(), uf);
 		}
 
 	}
 
-	private void povoarDados(UF uf, ArquivoProcessado arquivoProcessado) {
-		// TODO Auto-generated method stub
+	private Municipio criarMunicipioSeNaoExistir(int codigoMunicipio, String nomeMunicipio, UF uf) {
+		Municipio m = recuperarMunicipioPorCodigo(codigoMunicipio);
+		if(m == null) {
+			m = criarMunicipio(codigoMunicipio, nomeMunicipio, uf);
+		}
+		return m;
+	}
 
+	private Municipio criarMunicipio(int codigoMunicipio, String nomeMunicipio, UF uf) {
+		Municipio m = new Municipio(codigoMunicipio, nomeMunicipio, uf);
+		getEntityManager().persist(m);
+		return m;
+	}
+
+	@SuppressWarnings("unchecked")
+	private Municipio recuperarMunicipioPorCodigo(int codigoMunicipio) {
+		List<Municipio> municipiosPorCodigo = getEntityManager().createQuery("from Municipio m where m.codigoTSE = :codigo").setParameter("codigo", codigoMunicipio).getResultList();
+		if(municipiosPorCodigo == null || municipiosPorCodigo.isEmpty()) {
+			return null;
+		}
+		return municipiosPorCodigo.get(0);
 	}
 
 	private Map<UF, ArquivoProcessado> processarArquivos(Map<UF, File> arquivosNaoProcessados)
@@ -61,18 +109,13 @@ public class PovoadorBancoDados {
 
 		for (UF uf : UF.values()) {
 			File arquivoNaoProcessado = arquivosNaoProcessados.get(uf);
-			ArquivoProcessado arquivoProcessado = new ArquivoProcessado();
+			ArquivoProcessado arquivoProcessado = new ArquivoProcessado(arquivoNaoProcessado.getName());
 			try {
-				List<String> linhasNaoProcessadas = ArquivoUtil.lerTodasLinhas(arquivoNaoProcessado.getAbsolutePath());
-				
 				int numeroLinha = 1;
-
-				for (String linha : linhasNaoProcessadas) {
+				for (String linhaNaoProcessada : ArquivoUtil.lerTodasLinhas(arquivoNaoProcessado.getAbsolutePath())) {
 					try {
-						if (!"".equals(linha.trim())) {
-							LinhaProcessada linhaProcessada = processarLinha(linha);
-							System.out.println(linhaProcessada);
-							incluirDadosLinha(arquivoProcessado, linhaProcessada);
+						if (!"".equals(linhaNaoProcessada.trim())) {
+							arquivoProcessado.addLinha(processarLinha(linhaNaoProcessada));
 						}
 					} catch (LinhaInvalidaException e) {
 						throw new ArquivoInvalidoException("A linha " + numeroLinha + " do arquivo "
@@ -92,10 +135,6 @@ public class PovoadorBancoDados {
 		return arquivosProcessados;
 	}
 
-	private void incluirDadosLinha(ArquivoProcessado arquivoProcessado, LinhaProcessada linhaProcessada) {
-		// TODO Auto-generated method stub
-	}
-
 	private LinhaProcessada processarLinha(String linha) throws LinhaInvalidaException {
 		String[] atributos = linha.split(SEPARADOR);
 		validarAtributos(atributos);
@@ -107,6 +146,13 @@ public class PovoadorBancoDados {
 			throw new LinhaInvalidaException(atributos.length);
 		}
 
+	}
+	
+	private EntityManager getEntityManager() {
+		if (entityManager == null) {
+			entityManager = Persistence.createEntityManagerFactory("etlPU").createEntityManager();
+		}
+		return entityManager;
 	}
 
 }

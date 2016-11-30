@@ -26,6 +26,9 @@ public class Main {
 			catch (ArquivoInvalidoException e) {
 				mensagemExcecao = e.getMensagem();
 			}
+			catch (Exception e) {
+				mensagemExcecao = "erro";
+			}
 			if(mensagemExcecao != null) {
 				JOptionPane.showMessageDialog(null, mensagemExcecao, "Erro no processamento", JOptionPane.ERROR_MESSAGE);
 			}

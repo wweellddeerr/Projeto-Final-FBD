@@ -2,6 +2,7 @@ package br.unb.ppca.fbd.etl.entity;
 
 import javax.persistence.Column;
 import javax.persistence.Entity;
+import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
@@ -9,16 +10,24 @@ import br.unb.ppca.fbd.etl.vo.UF;
 
 @Entity
 public class Municipio {
+	
+	Municipio() {}
+	
+	public Municipio(Integer codigoTse, String nome, UF uf) {
+		this.codigoTSE = codigoTse;
+		this.nome = nome;
+		this.uf = uf;
+	}
 
 	@Id
-	@Column(name="")
+	@Column(name="COD_TSE")
 	private Integer codigoTSE;
 	
-	@Column(name="")
+	@Column
 	private String nome;
 	
-	@Enumerated
-	@Column(name="")
+	@Enumerated(EnumType.STRING)
+	@Column(name="SIGLA_UF")
 	private UF uf;
 
 	public Integer getCodigoTSE() {
