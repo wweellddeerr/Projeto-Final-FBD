@@ -76,6 +76,7 @@ public class PovoadorBancoDados {
 	private void povoarDados(UF uf, ArquivoProcessado arquivoProcessado) {
 		for (LinhaProcessada linhaProcessada : arquivoProcessado.getLinhasProcessadas()) {
 			Municipio municipioEleicao = criarMunicipioSeNaoExistir(linhaProcessada.getCodigoMunicipio(), linhaProcessada.getNomeMunicipio(), uf);
+			
 		}
 
 	}
