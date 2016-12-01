@@ -1,5 +1,7 @@
 package br.unb.ppca.fbd.etl.action;
 
+import java.util.Calendar;
+
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
@@ -16,6 +18,10 @@ public class Main {
 		
 		if(retorno == JFileChooser.APPROVE_OPTION) {
 			String mensagemExcecao = null;
+			System.out.println("Início do processamento: " + 
+					Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + ":" + 
+					Calendar.getInstance().get(Calendar.MINUTE) + ":" +
+					Calendar.getInstance().get(Calendar.SECOND));
 			try {
 				PovoadorBancoDados.instance().povoar(uploader.getSelectedFile());
 				JOptionPane.showMessageDialog(null, "O diretório é válido.");
@@ -27,11 +33,17 @@ public class Main {
 				mensagemExcecao = e.getMensagem();
 			}
 			catch (Exception e) {
+				e.printStackTrace();
 				mensagemExcecao = "erro";
 			}
 			if(mensagemExcecao != null) {
 				JOptionPane.showMessageDialog(null, mensagemExcecao, "Erro no processamento", JOptionPane.ERROR_MESSAGE);
 			}
+			
+			System.out.println("Término do processamento: " + 
+					Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + ":" + 
+					Calendar.getInstance().get(Calendar.MINUTE) + ":" +
+					Calendar.getInstance().get(Calendar.SECOND));
 		}
 		
 	}

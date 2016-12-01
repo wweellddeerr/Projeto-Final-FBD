@@ -33,7 +33,7 @@ public class LinhaProcessada {
 	private static final int INDICE_UF_NASCIMENTO = 37;
 	private static final int INDICE_CODIGO_MUNICIPIO_NASCIMENTO = 38;
 	private static final int INDICE_NOME_MUNICIPIO_NASCIMENTO = 39;
-	private static final int INDICE_CODIGO_SITUACAO = 41;
+	private static final int INDICE_SITUACAO_ELEICAO = 42;
 	private static final int INDICE_EMAIL = 43;
 	
 
@@ -66,7 +66,7 @@ public class LinhaProcessada {
 	private String siglaUFNascimento;
 	private int codigoMunicipioNascimento;
 	private String nomeMunicipioNascimento;
-	private int codigoSituacao;
+	private String situacaoEleicao;
 	private String email;
 	
 	public LinhaProcessada(String[] atributos) {
@@ -99,7 +99,7 @@ public class LinhaProcessada {
 		siglaUFNascimento = atributos[INDICE_UF_NASCIMENTO].replaceAll("\"", "");
 		codigoMunicipioNascimento = Integer.parseInt(atributos[INDICE_CODIGO_MUNICIPIO_NASCIMENTO].replaceAll("\"", ""));
 		nomeMunicipioNascimento = atributos[INDICE_NOME_MUNICIPIO_NASCIMENTO].replaceAll("\"", "");
-		codigoSituacao = Integer.parseInt(atributos[INDICE_CODIGO_SITUACAO].replaceAll("\"", ""));
+		situacaoEleicao = atributos[INDICE_SITUACAO_ELEICAO].replaceAll("\"", "");
 		email = atributos[INDICE_EMAIL].replaceAll("\"", "");
 	}
 
@@ -219,8 +219,8 @@ public class LinhaProcessada {
 		return nomeMunicipioNascimento;
 	}
 
-	public int getCodigoSituacao() {
-		return codigoSituacao;
+	public String getSituacaoEleicao() {
+		return situacaoEleicao;
 	}
 
 	public String getEmail() {
@@ -241,7 +241,7 @@ public class LinhaProcessada {
 				+ descricaoGrauInstrucao + ", estadoCivil=" + estadoCivil + ", codigoNacionalidade="
 				+ codigoNacionalidade + ", descricaoNacionalidade=" + descricaoNacionalidade + ", siglaUFNascimento="
 				+ siglaUFNascimento + ", codigoMunicipioNascimento=" + codigoMunicipioNascimento
-				+ ", nomeMunicipioNascimento=" + nomeMunicipioNascimento + ", codigoSituacao=" + codigoSituacao
+				+ ", nomeMunicipioNascimento=" + nomeMunicipioNascimento + ", situacaoEleicao=" + situacaoEleicao
 				+ ", email=" + email + "]";
 	}
 
