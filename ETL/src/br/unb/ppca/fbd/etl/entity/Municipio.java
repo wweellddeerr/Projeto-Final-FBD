@@ -6,7 +6,7 @@ import javax.persistence.EnumType;
 import javax.persistence.Enumerated;
 import javax.persistence.Id;
 
-import br.unb.ppca.fbd.etl.vo.UF;
+import br.unb.ppca.fbd.etl.dominio.UF;
 
 @Entity
 public class Municipio {

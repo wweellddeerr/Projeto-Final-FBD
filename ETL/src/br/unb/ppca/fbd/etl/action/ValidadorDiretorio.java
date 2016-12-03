@@ -4,8 +4,8 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 
+import br.unb.ppca.fbd.etl.dominio.UF;
 import br.unb.ppca.fbd.etl.exception.DiretorioInvalidoException;
-import br.unb.ppca.fbd.etl.vo.UF;
 
 public class ValidadorDiretorio {
 	
@@ -60,9 +60,10 @@ public class ValidadorDiretorio {
 		if(arquivosPorUF.size() == 26) {
 			
 			for (UF uf : UF.values()) {
-				
-				if(arquivosPorUF.get(uf) == null) {
-					throw e;
+				if(uf.isTemEleicaoMunicipal()) {
+					if(arquivosPorUF.get(uf) == null) {
+						throw e;
+					}
 				}
 				
 			}

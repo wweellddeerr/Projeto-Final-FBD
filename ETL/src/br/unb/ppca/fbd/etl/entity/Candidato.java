@@ -12,7 +12,7 @@ public class Candidato {
 	
 	@Id
 	@Column
-	private BigInteger cpf;
+	private Long cpf;
 	
 	@Column(name="COD_TSE_MUNIC_NASC")
 	private Integer codigoMunicipioNascimento;
@@ -44,7 +44,7 @@ public class Candidato {
 	@Column(name="ESTADO_CIVIL")
 	private String estadoCivil;
 
-	public Candidato(BigInteger cpf, Integer codigoMunicipioNascimento, Integer codigoNacionalidade, Integer codigoOcupacao,
+	public Candidato(Long cpf, Integer codigoMunicipioNascimento, Integer codigoNacionalidade, Integer codigoOcupacao,
 			Integer codigoGrauInstrucao, String nome, Date dataNascimento, BigInteger numeroTitulo, String email,
 			String sexo, String estadoCivil) {
 		this.cpf = cpf;
@@ -60,7 +60,7 @@ public class Candidato {
 		this.estadoCivil = estadoCivil;
 	}
 
-	public BigInteger getCpf() {
+	public Long getCpf() {
 		return cpf;
 	}
 

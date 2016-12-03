@@ -7,11 +7,13 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
 
+import br.unb.ppca.fbd.etl.dominio.UF;
 import br.unb.ppca.fbd.etl.entity.Candidato;
 import br.unb.ppca.fbd.etl.entity.Candidatura;
 import br.unb.ppca.fbd.etl.entity.CandidaturaId;
@@ -26,7 +28,6 @@ import br.unb.ppca.fbd.etl.exception.LinhaInvalidaException;
 import br.unb.ppca.fbd.etl.util.ArquivoUtil;
 import br.unb.ppca.fbd.etl.vo.ArquivoProcessado;
 import br.unb.ppca.fbd.etl.vo.LinhaProcessada;
-import br.unb.ppca.fbd.etl.vo.UF;
 
 public class PovoadorBancoDados {
 
@@ -60,10 +61,13 @@ public class PovoadorBancoDados {
 				povoarDados(uf, arquivosProcessados.get(uf));
 			}
 
+			getEntityManager().flush();
 			getEntityManager().getTransaction().commit();
+			getEntityManager().clear();
 			getEntityManager().close();
 		} catch (Exception e) {
 			getEntityManager().getTransaction().rollback();
+			getEntityManager().clear();
 			getEntityManager().close();
 			throw e;
 		}
@@ -80,7 +84,8 @@ public class PovoadorBancoDados {
 		for (LinhaProcessada linhaProcessada : arquivoProcessado.getLinhasProcessadas()) {
 			// cria os municípios de eleição
 			criarMunicipioSeNaoExistir(linhaProcessada.getCodigoMunicipio(), linhaProcessada.getNomeMunicipio(), uf);
-
+		}
+		for (LinhaProcessada linhaProcessada : arquivoProcessado.getLinhasProcessadas()) {
 			// cria os partidos políticos
 			criarPartidoSeNaoExistir(linhaProcessada.getNumeroPartido(), linhaProcessada.getSiglaPartido(),
 					linhaProcessada.getNomePartido());
@@ -97,8 +102,9 @@ public class PovoadorBancoDados {
 					linhaProcessada.getDescricaoGrauInstrucao());
 			
 			//cria os municípios de nascimento
-			criarMunicipioSeNaoExistir(linhaProcessada.getCodigoMunicipioNascimento(), 
-					linhaProcessada.getNomeMunicipioNascimento(), UF.valueOf(linhaProcessada.getSiglaUFNascimento()));
+			System.out.println(linhaProcessada);
+			linhaProcessada.setCodigoMunicipioNascimento(criarMunicipioSeNaoExistir(linhaProcessada.getCodigoMunicipioNascimento(), 
+					linhaProcessada.getNomeMunicipioNascimento(), UF.valueOf(linhaProcessada.getSiglaUFNascimento())).getCodigoTSE());
 
 			// cria os candidatos
 			criarCandidatoSeNaoExistir(linhaProcessada.getCpf(), linhaProcessada.getCodigoMunicipioNascimento(),
@@ -133,18 +139,20 @@ public class PovoadorBancoDados {
 		return numeroTurno == 2;
 	}
 
-	private void criarCandidatoSeNaoExistir(BigInteger cpf, int codigoMunicipioNascimento, int codigoNacionalidade,
+	private void criarCandidatoSeNaoExistir(Long cpf, int codigoMunicipioNascimento, int codigoNacionalidade,
 			int codigoOcupacao, int codigoGrauInstrucao, String nomeCandidato, String dataNascimento,
 			BigInteger numeroTitulo, String email, String sexo, String estadoCivil) {
 
+		if(cpf.equals(Long.valueOf(21755434200L))) {
+			System.out.println("break.");
+		}
+		
 		Candidato c = getEntityManager().find(Candidato.class, cpf);
 
 		if (c == null) {
-			getEntityManager().persist(new Candidato(cpf, codigoMunicipioNascimento, codigoNacionalidade,
-					codigoOcupacao, codigoGrauInstrucao, nomeCandidato, converterData(dataNascimento), numeroTitulo,
-					email, sexo, estadoCivil));
+			getEntityManager().persist(new Candidato(cpf, codigoMunicipioNascimento, codigoNacionalidade, codigoOcupacao, 
+					codigoGrauInstrucao, nomeCandidato, converterData(dataNascimento), numeroTitulo, email, sexo, estadoCivil));
 		}
-
 	}
 
 	private Date converterData(String data) {
@@ -183,11 +191,38 @@ public class PovoadorBancoDados {
 		}
 	}
 
-	private void criarMunicipioSeNaoExistir(int codigoMunicipio, String nomeMunicipio, UF uf) {
-		Municipio m = getEntityManager().find(Municipio.class, codigoMunicipio);
-		if (m == null) {
-			getEntityManager().persist(new Municipio(codigoMunicipio, nomeMunicipio, uf));
+	@SuppressWarnings("unchecked")
+	private Municipio criarMunicipioSeNaoExistir(int codigoMunicipio, String nomeMunicipio, UF uf) {
+		Municipio m = null;
+		if(codigoMunicipio == -1) {
+			List<Municipio> ms = getEntityManager()
+					.createQuery("from Municipio m where m.nome = :nomeMunicipio and m.uf = :uf")
+					.setParameter("nomeMunicipio", nomeMunicipio)
+					.setParameter("uf", uf)
+					.getResultList();
+			
+			if(ms != null && ms.size() == 1) {
+				m = ms.get(0);
+			}
+			else {
+				Integer max = (Integer) getEntityManager().createQuery("select max(m.id) from Municipio m").getSingleResult();
+				m = new Municipio(max + 100000, nomeMunicipio, uf);
+				getEntityManager().persist(m);
+			}
 		}
+		else {
+			m = getEntityManager().find(Municipio.class, codigoMunicipio);
+			if (m == null) {
+				m = new Municipio(codigoMunicipio, nomeMunicipio, uf);
+				getEntityManager().persist(m);
+			}
+		}
+		
+		if(m == null) {
+			throw new RuntimeException("Não foi possível recuperar o município");
+		}
+		
+		return m;
 	}
 
 	private Map<UF, ArquivoProcessado> processarArquivos(Map<UF, File> arquivosNaoProcessados)
@@ -195,28 +230,30 @@ public class PovoadorBancoDados {
 		Map<UF, ArquivoProcessado> arquivosProcessados = new HashMap<UF, ArquivoProcessado>();
 
 		for (UF uf : UF.values()) {
-			File arquivoNaoProcessado = arquivosNaoProcessados.get(uf);
-			ArquivoProcessado arquivoProcessado = new ArquivoProcessado(arquivoNaoProcessado.getName());
-			try {
-				int numeroLinha = 1;
-				for (String linhaNaoProcessada : ArquivoUtil.lerTodasLinhas(arquivoNaoProcessado.getAbsolutePath())) {
-					try {
-						if (!"".equals(linhaNaoProcessada.trim())) {
-							arquivoProcessado.addLinha(processarLinha(linhaNaoProcessada));
+			if(uf.isTemEleicaoMunicipal()) {
+				File arquivoNaoProcessado = arquivosNaoProcessados.get(uf);
+				ArquivoProcessado arquivoProcessado = new ArquivoProcessado(arquivoNaoProcessado.getName());
+				try {
+					int numeroLinha = 1;
+					for (String linhaNaoProcessada : ArquivoUtil.lerTodasLinhas(arquivoNaoProcessado.getAbsolutePath())) {
+						try {
+							if (!"".equals(linhaNaoProcessada.trim())) {
+								arquivoProcessado.addLinha(processarLinha(linhaNaoProcessada));
+							}
+						} catch (LinhaInvalidaException e) {
+							throw new ArquivoInvalidoException("A linha " + numeroLinha + " do arquivo "
+									+ arquivoNaoProcessado.getName() + " é inválida. Possui " + e.getNumeroAtributos()
+									+ " atributos e deveria possuir " + NUMERO_ATRIBUTOS + ".");
 						}
-					} catch (LinhaInvalidaException e) {
-						throw new ArquivoInvalidoException("A linha " + numeroLinha + " do arquivo "
-								+ arquivoNaoProcessado.getName() + " é inválida. Possui " + e.getNumeroAtributos()
-								+ " atributos e deveria possuir " + NUMERO_ATRIBUTOS + ".");
+						numeroLinha++;
 					}
-					numeroLinha++;
+				} catch (IOException e) {
+					e.printStackTrace();
+					throw new ArquivoInvalidoException("O arquivo " + arquivoNaoProcessado.getName() + " não é válido.");
 				}
-			} catch (IOException e) {
-				e.printStackTrace();
-				throw new ArquivoInvalidoException("O arquivo " + arquivoNaoProcessado.getName() + " não é válido.");
+	
+				arquivosProcessados.put(uf, arquivoProcessado);
 			}
-
-			arquivosProcessados.put(uf, arquivoProcessado);
 		}
 
 		return arquivosProcessados;

@@ -1,7 +1,6 @@
 package br.unb.ppca.fbd.etl.entity;
 
 import java.io.Serializable;
-import java.math.BigInteger;
 
 import javax.persistence.Column;
 import javax.persistence.Embeddable;
@@ -13,7 +12,7 @@ public class CandidaturaId implements Serializable {
 
 	CandidaturaId(){}
 	
-	public CandidaturaId(Integer anoCandidatura, BigInteger cpf) {
+	public CandidaturaId(Integer anoCandidatura, Long cpf) {
 		this.anoCandidatura = anoCandidatura;
 		this.cpf = cpf;
 	}
@@ -22,7 +21,7 @@ public class CandidaturaId implements Serializable {
 	private Integer anoCandidatura;
 	
 	@Column(name="CPF_CANDIDATO")
-	private BigInteger cpf;
+	private Long cpf;
 
 	@Override
 	public int hashCode() {

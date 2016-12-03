@@ -1,7 +1,5 @@
 package br.unb.ppca.fbd.etl.entity;
 
-import java.math.BigInteger;
-
 import javax.persistence.Column;
 import javax.persistence.EmbeddedId;
 import javax.persistence.Entity;
@@ -36,13 +34,14 @@ public class Candidatura {
 	@Column(name="SE_SEGUNDO_TURNO")
 	private boolean segundoTurno;
 	
-	public Candidatura(Integer anoCandidatura, BigInteger cpf, Integer numeroPartido, Integer codigoMunicipio, Integer numeroUrna,
+	public Candidatura(Integer anoCandidatura, Long cpf, Integer numeroPartido, Integer codigoMunicipio, Integer numeroUrna,
 			String nomeUrna, String descricaoSituacaoCandidatura, String nomeCargo, String situacaoEleicao, boolean segundoTurno) {
 		this.id = new CandidaturaId(anoCandidatura, cpf);
 		this.numeroPartido = numeroPartido;
 		this.codigoMunicipio = codigoMunicipio;
 		this.numeroUrna = numeroUrna;
 		this.nomeUrna = nomeUrna;
+		this.descricaoSituacaoCandidatura = descricaoSituacaoCandidatura;
 		this.nomeCargo = nomeCargo;
 		this.situacaoEleicao = situacaoEleicao;
 		this.segundoTurno = segundoTurno;

@@ -46,7 +46,7 @@ public class LinhaProcessada {
 	private String nomeCargo;
 	private String nomeCandidato;
 	private int numeroUrna;
-	private BigInteger cpf;
+	private Long cpf;
 	private String nomeUrna;
 	private int codigoSituacaoCandidatura;
 	private String descricaoSituacaoCandidatura;
@@ -79,7 +79,7 @@ public class LinhaProcessada {
 		nomeCargo = atributos[INDICE_NOME_CARGO].replaceAll("\"", "");
 		nomeCandidato = atributos[INDICE_NOME_CANDIDATO].replaceAll("\"", "");
 		numeroUrna = Integer.parseInt(atributos[INDICE_NUMERO_URNA].replaceAll("\"", ""));
-		cpf = new BigInteger(atributos[INDICE_CPF].replaceAll("\"", ""));
+		cpf = Long.valueOf(atributos[INDICE_CPF].replaceAll("\"", ""));
 		nomeUrna = atributos[INDICE_NOME_URNA].replaceAll("\"", "");
 		codigoSituacaoCandidatura = Integer.parseInt(atributos[INDICE_CODIGO_SITUACAO_CANDIDATURA].replaceAll("\"", ""));
 		descricaoSituacaoCandidatura = atributos[INDICE_DESCRICAO_SITUACAO_CANDIDATURA].replaceAll("\"", "");
@@ -139,7 +139,7 @@ public class LinhaProcessada {
 		return numeroUrna;
 	}
 
-	public BigInteger getCpf() {
+	public Long getCpf() {
 		return cpf;
 	}
 
@@ -213,6 +213,10 @@ public class LinhaProcessada {
 
 	public int getCodigoMunicipioNascimento() {
 		return codigoMunicipioNascimento;
+	}
+	
+	public void setCodigoMunicipioNascimento(int codigoMunicipioNascimento) {
+		this.codigoMunicipioNascimento = codigoMunicipioNascimento;
 	}
 
 	public String getNomeMunicipioNascimento() {
