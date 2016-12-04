@@ -16,6 +16,8 @@ public class GrauInstrucao {
 	@Column
 	private String descricao;
 	
+	GrauInstrucao(){}
+	
 	public GrauInstrucao(Integer codigo, String descricao) {
 		this.codigo = codigo;
 		this.descricao = descricao;

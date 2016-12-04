@@ -43,6 +43,8 @@ public class Candidato {
 	
 	@Column(name="ESTADO_CIVIL")
 	private String estadoCivil;
+	
+	Candidato() {}
 
 	public Candidato(Long cpf, Integer codigoMunicipioNascimento, Integer codigoNacionalidade, Integer codigoOcupacao,
 			Integer codigoGrauInstrucao, String nome, Date dataNascimento, BigInteger numeroTitulo, String email,

@@ -6,9 +6,7 @@ import java.math.BigInteger;
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
 import javax.persistence.EntityManager;
 import javax.persistence.Persistence;
@@ -29,58 +27,41 @@ import br.unb.ppca.fbd.etl.util.ArquivoUtil;
 import br.unb.ppca.fbd.etl.vo.ArquivoProcessado;
 import br.unb.ppca.fbd.etl.vo.LinhaProcessada;
 
-public class PovoadorBancoDados {
+public abstract class PovoadorGenerico {
 
-	private static final String SEPARADOR = ";";
-	private static final int NUMERO_ATRIBUTOS = 44;
+	public static final String SEPARADOR = ";";
+	public static final int NUMERO_ATRIBUTOS = 44;
 
+	protected File file;
+	
 	private EntityManager entityManager;
 
-	private PovoadorBancoDados() {
-	}
+	public abstract void povoar() throws DiretorioInvalidoException, ArquivoInvalidoException;
 
-	private static PovoadorBancoDados instance;
-
-	public static PovoadorBancoDados instance() {
-		if (instance == null) {
-			instance = new PovoadorBancoDados();
-		}
-		return instance;
-	}
-
-	public void povoar(File diretorio) throws DiretorioInvalidoException, ArquivoInvalidoException {
-
-		Map<UF, File> arquivosNaoProcessados = ValidadorDiretorio.instance().validar(diretorio);
-		Map<UF, ArquivoProcessado> arquivosProcessados = processarArquivos(arquivosNaoProcessados);
-
-		getEntityManager().getTransaction().begin();
+	protected ArquivoProcessado processarArquivo(File arquivoNaoProcessado) throws ArquivoInvalidoException {
+		ArquivoProcessado arquivoProcessado = new ArquivoProcessado(arquivoNaoProcessado.getName());
 		try {
-			incluirTodasUFs();
-
-			for (UF uf : UF.values()) {
-				povoarDados(uf, arquivosProcessados.get(uf));
+			int numeroLinha = 1;
+			for (String linhaNaoProcessada : ArquivoUtil.lerTodasLinhas(arquivoNaoProcessado.getAbsolutePath())) {
+				try {
+					if (!"".equals(linhaNaoProcessada.trim())) {
+						arquivoProcessado.addLinha(processarLinha(linhaNaoProcessada));
+					}
+				} catch (LinhaInvalidaException e) {
+					throw new ArquivoInvalidoException("A linha " + numeroLinha + " do arquivo "
+							+ arquivoNaoProcessado.getName() + " é inválida. Possui " + e.getNumeroAtributos()
+							+ " atributos e deveria possuir " + NUMERO_ATRIBUTOS + ".");
+				}
+				numeroLinha++;
 			}
-
-			getEntityManager().flush();
-			getEntityManager().getTransaction().commit();
-			getEntityManager().clear();
-			getEntityManager().close();
-		} catch (Exception e) {
-			getEntityManager().getTransaction().rollback();
-			getEntityManager().clear();
-			getEntityManager().close();
-			throw e;
+		} catch (IOException e) {
+			e.printStackTrace();
+			throw new ArquivoInvalidoException("O arquivo " + arquivoNaoProcessado.getName() + " não é válido.");
 		}
+		return arquivoProcessado;
 	}
 
-	private void incluirTodasUFs() {
-		for (UF uf : UF.values()) {
-			getEntityManager().createNativeQuery("insert into UF(SIGLA, NOME) values (:sigla, :nome)")
-					.setParameter("sigla", uf.name()).setParameter("nome", uf.getNome()).executeUpdate();
-		}
-	}
-
-	private void povoarDados(UF uf, ArquivoProcessado arquivoProcessado) {
+	protected void povoarDados(UF uf, ArquivoProcessado arquivoProcessado) {
 		for (LinhaProcessada linhaProcessada : arquivoProcessado.getLinhasProcessadas()) {
 			// cria os municípios de eleição
 			criarMunicipioSeNaoExistir(linhaProcessada.getCodigoMunicipio(), linhaProcessada.getNomeMunicipio(), uf);
@@ -119,7 +100,7 @@ public class PovoadorBancoDados {
 
 	}
 
-	private void criarCandidaturaSeNaoExistir(LinhaProcessada linhaProcessada) {
+	protected void criarCandidaturaSeNaoExistir(LinhaProcessada linhaProcessada) {
 		
 		Candidatura c = getEntityManager().find(Candidatura.class, new CandidaturaId(linhaProcessada.getAnoCandidatura(), linhaProcessada.getCpf()));
 
@@ -143,10 +124,6 @@ public class PovoadorBancoDados {
 			int codigoOcupacao, int codigoGrauInstrucao, String nomeCandidato, String dataNascimento,
 			BigInteger numeroTitulo, String email, String sexo, String estadoCivil) {
 
-		if(cpf.equals(Long.valueOf(21755434200L))) {
-			System.out.println("break.");
-		}
-		
 		Candidato c = getEntityManager().find(Candidato.class, cpf);
 
 		if (c == null) {
@@ -225,41 +202,7 @@ public class PovoadorBancoDados {
 		return m;
 	}
 
-	private Map<UF, ArquivoProcessado> processarArquivos(Map<UF, File> arquivosNaoProcessados)
-			throws ArquivoInvalidoException {
-		Map<UF, ArquivoProcessado> arquivosProcessados = new HashMap<UF, ArquivoProcessado>();
-
-		for (UF uf : UF.values()) {
-			if(uf.isTemEleicaoMunicipal()) {
-				File arquivoNaoProcessado = arquivosNaoProcessados.get(uf);
-				ArquivoProcessado arquivoProcessado = new ArquivoProcessado(arquivoNaoProcessado.getName());
-				try {
-					int numeroLinha = 1;
-					for (String linhaNaoProcessada : ArquivoUtil.lerTodasLinhas(arquivoNaoProcessado.getAbsolutePath())) {
-						try {
-							if (!"".equals(linhaNaoProcessada.trim())) {
-								arquivoProcessado.addLinha(processarLinha(linhaNaoProcessada));
-							}
-						} catch (LinhaInvalidaException e) {
-							throw new ArquivoInvalidoException("A linha " + numeroLinha + " do arquivo "
-									+ arquivoNaoProcessado.getName() + " é inválida. Possui " + e.getNumeroAtributos()
-									+ " atributos e deveria possuir " + NUMERO_ATRIBUTOS + ".");
-						}
-						numeroLinha++;
-					}
-				} catch (IOException e) {
-					e.printStackTrace();
-					throw new ArquivoInvalidoException("O arquivo " + arquivoNaoProcessado.getName() + " não é válido.");
-				}
-	
-				arquivosProcessados.put(uf, arquivoProcessado);
-			}
-		}
-
-		return arquivosProcessados;
-	}
-
-	private LinhaProcessada processarLinha(String linha) throws LinhaInvalidaException {
+	protected LinhaProcessada processarLinha(String linha) throws LinhaInvalidaException {
 		String[] atributos = linha.split(SEPARADOR);
 		validarAtributos(atributos);
 		return new LinhaProcessada(atributos);
@@ -272,7 +215,7 @@ public class PovoadorBancoDados {
 
 	}
 
-	private EntityManager getEntityManager() {
+	protected EntityManager getEntityManager() {
 		if (entityManager == null) {
 			entityManager = Persistence.createEntityManagerFactory("etlPU").createEntityManager();
 		}

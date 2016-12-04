@@ -14,6 +14,8 @@ public class Ocupacao {
 	@Column
 	private String descricao;
 	
+	Ocupacao(){}
+	
 	public Ocupacao(Integer codigo, String descricao) {
 		this.codigo = codigo;
 		this.descricao = descricao;

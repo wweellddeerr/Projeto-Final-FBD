@@ -7,6 +7,8 @@ import javax.persistence.Id;
 @Entity
 public class Nacionalidade {
 	
+	Nacionalidade() {}
+	
 	public Nacionalidade(Integer codigo, String descricao) {
 		this.codigo = codigo;
 		this.descricao = descricao;

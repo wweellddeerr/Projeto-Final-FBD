@@ -9,6 +9,8 @@ import javax.persistence.Table;
 @Table(name="PARTIDO_POLITICO")
 public class PartidoPolitico {
 	
+	PartidoPolitico() {}
+	
 	public PartidoPolitico(Integer numero, String sigla, String nome) {
 		this.numero = numero;
 		this.sigla = sigla;

@@ -34,6 +34,8 @@ public class Candidatura {
 	@Column(name="SE_SEGUNDO_TURNO")
 	private boolean segundoTurno;
 	
+	Candidatura() {}
+	
 	public Candidatura(Integer anoCandidatura, Long cpf, Integer numeroPartido, Integer codigoMunicipio, Integer numeroUrna,
 			String nomeUrna, String descricaoSituacaoCandidatura, String nomeCargo, String situacaoEleicao, boolean segundoTurno) {
 		this.id = new CandidaturaId(anoCandidatura, cpf);

@@ -1,7 +1,5 @@
 package br.unb.ppca.fbd.etl.action;
 
-import java.util.Calendar;
-
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 
@@ -11,20 +9,21 @@ import br.unb.ppca.fbd.etl.exception.DiretorioInvalidoException;
 public class Main {
 
 	public static void main(String[] args) {
+		
+		int tipo = JOptionPane.showConfirmDialog(null, "Deseja selecionar um diretório completo?");
 		JFileChooser uploader = new JFileChooser();
-		uploader.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		
+		if(tipo == JOptionPane.YES_OPTION) {
+			uploader.setFileSelectionMode(JFileChooser.DIRECTORIES_ONLY);
+		}
 		
 		int retorno = uploader.showOpenDialog(null);
 		
 		if(retorno == JFileChooser.APPROVE_OPTION) {
 			String mensagemExcecao = null;
-			System.out.println("Início do processamento: " + 
-					Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + ":" + 
-					Calendar.getInstance().get(Calendar.MINUTE) + ":" +
-					Calendar.getInstance().get(Calendar.SECOND));
 			try {
-				PovoadorBancoDados.instance().povoar(uploader.getSelectedFile());
-				JOptionPane.showMessageDialog(null, "O diretório é válido.");
+				PovoadorFactory.instance().criarPovoador(uploader.getSelectedFile()).povoar();
+				JOptionPane.showMessageDialog(null, "Processamento concluído com sucesso.");
 			}
 			catch(DiretorioInvalidoException e) {
 				mensagemExcecao = e.getMensagem();
@@ -34,16 +33,11 @@ public class Main {
 			}
 			catch (Exception e) {
 				e.printStackTrace();
-				mensagemExcecao = "erro";
+				mensagemExcecao = e.getMessage();
 			}
 			if(mensagemExcecao != null) {
 				JOptionPane.showMessageDialog(null, mensagemExcecao, "Erro no processamento", JOptionPane.ERROR_MESSAGE);
 			}
-			
-			System.out.println("Término do processamento: " + 
-					Calendar.getInstance().get(Calendar.HOUR_OF_DAY) + ":" + 
-					Calendar.getInstance().get(Calendar.MINUTE) + ":" +
-					Calendar.getInstance().get(Calendar.SECOND));
 		}
 		
 	}
